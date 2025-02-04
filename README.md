@@ -7,9 +7,8 @@
 
 1. Clonar proyecto
 2. ```yarn install```
-3. Cambiar las variables de entorno, ajustar ```.env``` si es necesario
-5. Levantar la base de datos
+3. Cambiar archivo .env_copy a .env
+5. Levantar proyecto
 ```
 docker-compose up -d
 ```
-6. Levantar ```npm run start:dev```
