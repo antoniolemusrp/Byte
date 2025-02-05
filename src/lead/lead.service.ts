@@ -32,12 +32,20 @@ export class LeadService {
     }
   }
 
+
   findAll() {
 
-    const leads = this.leadRepository.find();
+    // FIXME NO ESTAS UTILIZANDO LLAMADAS ASINCRONAS EN ESTE METODO
+    const leads = this.leadRepository.find(); // ESTA LLAMADA DEVUELVE UN OBJETO PROMISE QUE NO ES ALCANZADO 
 
     return leads;
   }
+
+  // REVIEW SOLUTION
+  // async findAll() {
+  //   const leads = await this.leadRepository.find(); 
+  //   return leads;
+  // }
 
   async findOne(term: string) {
 
@@ -47,7 +55,7 @@ export class LeadService {
     
       if ( isUUID(term) ) {
         leadDB = await this.leadRepository.findOneBy({ id: term });
-      } else {
+      } else { // FIXME PARA MEJOR LEGIBILIDAD DEBERIAS UTILIZAR UN ELSE IF
         if (isEmail(term)) { leadDB = await this.leadRepository.findOneBy({ email: term }); }
         else{
 
@@ -72,8 +80,8 @@ export class LeadService {
     let leadDB: Lead[];
 
       if ( !term ) {
-        leadDB = await this.leadRepository.find();
-      if (!leadDB) throw new NotFoundException(`No Lead added yet`)
+        leadDB = await this.leadRepository.find(); // FIXME LO CORRECTO ES PAGINAR ESTA CONSULTA
+      if (!leadDB) throw new NotFoundException(`No Lead added yet`) //FIXME SIEMPRE VA A SER TRUE PORQUE EL ARRAY NUNCA VA A SER NULL
       return leadDB;
       }
       
@@ -103,6 +111,7 @@ export class LeadService {
     return leadDB;
   }
 
+  
   async update(id: string, updateLeadDto: UpdateLeadDto) {
 
     const { sellerId, stages,...leadDetails } = updateLeadDto;
@@ -110,7 +119,7 @@ export class LeadService {
     if(stages) {
       const leadDB = await this.findOne(id);
 
-      const validStages = this.validateStages(leadDB.stages, stages);
+      const validStages = this.validateStages(leadDB.stages, stages); //FIXME NO UTILIZAS ESTA LLAMADA PARA NADA 
       
     }
 
@@ -135,7 +144,7 @@ export class LeadService {
 
   async remove(id: string) {
 
-    const lead = await this.leadRepository.preload({
+    const lead = await this.leadRepository.preload({ // FIXME POR QUE PRELOAD ? APARTE NO VALIDAS LA EXISTENCIA DEL LEAD
       id: id,
       status: 'eliminado'
     });
@@ -152,7 +161,7 @@ export class LeadService {
   }
 
 
-  private handleDBExceptions( error: any ) {
+  private handleDBExceptions( error: any ) { // FIXME ESTA FUNCION NO IMPRIME NADA EN CONSOLA, DIFICIL DE DEBUGEAR
 
     if ( error.code === '23505' )
       throw new BadRequestException(error.detail);
@@ -162,6 +171,8 @@ export class LeadService {
 
   }
 
+
+  // FIXME funcion poco escalable y dificil de mantener
   private validateStages(prevStages: string, newStages: string) {
     if (prevStages ==='nuevo' && newStages !== 'contactado') 
       throw new BadRequestException('Invalid stage transition');
@@ -181,6 +192,31 @@ export class LeadService {
     return true;
 
   }
+
+  // REVIEW SOLUTION MEJOR CODIGO 
+
+  // private readonly stageTransitions: Record<string, string[]> = {
+  //   nuevo: ['contactado'],
+  //   contactado: ['interesado'],
+  //   interesado: ['negociacion'],
+  //   negociacion: ['cerrado'],
+  //   cerrado: [] 
+  // };
+  
+  // private validateStages(prevStages: string, newStages: string) {
+  //   const validNextStages = this.stageTransitions[prevStages];
+  
+  //   if (!validNextStages) {
+  //     throw new BadRequestException(`Invalid current stage: ${prevStages}`);
+  //   }
+  
+  //   if (!validNextStages.includes(newStages)) {
+  //     throw new BadRequestException(`Invalid stage transition from '${prevStages}' to '${newStages}'`);
+  //   }
+  
+  //   return true;
+  // }
+  
 
 }
 
